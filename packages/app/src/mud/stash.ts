@@ -8,6 +8,7 @@ import { redstone } from "./redstone";
 
 const selectedDustTables = {
   Energy: dustWorldConfig.tables.Energy,
+  EntityObjectType: dustWorldConfig.tables.EntityObjectType,
 };
 
 export const tables = {
