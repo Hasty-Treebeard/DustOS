@@ -1,4 +1,4 @@
-# DUST Template - Example Programs and Development Guide
+# DUST OS - A modular user interface to enhance the DUST experience
 
 This repository contains example programs for DUST that demonstrate different patterns and use cases for smart entities in the game.
 
