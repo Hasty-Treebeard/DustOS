@@ -12,6 +12,7 @@ import mudConfig from "contracts/mud.config";
 import CounterAbi from "contracts/out/CounterSystem.sol/CounterSystem.abi.json";
 import { getObjectTypeAt } from "./getObjectTypeAt";
 import { useState, useEffect } from "react";
+import { objects, objectsById } from "@dust/world/internal";
 import type { Vec3 } from "@dust/world/internal";
 
 export default function App() {
@@ -20,10 +21,11 @@ export default function App() {
   const playerStatus = usePlayerStatus();
   const playerPosition = usePlayerPositionQuery();
   const isSplatRisk = false; // Placeholder for actual splat risk logic
-
+  
 
   const counter = useRecord({
     stash,
+  
     table: tables.Counter,
     key: {},
   });
@@ -49,6 +51,74 @@ export default function App() {
     },
   });
 
+  const [playerBlockType, setPlayerBlockType] = useState<number | null>(null);
+
+  //const updatePlayerBlockType = async (playerPosition) => {
+  const [distanceToCave, setDistanceToCave] = useState<number | null>(null);
+/*  if (!playerPosition?.data) return;
+  try {
+    const newPlayerBlockType = await getObjectTypeAt([
+      playerPosition.data.x,
+      playerPosition.data.y - 1,
+      playerPosition.data.z,
+    ]);
+    setPlayerBlockType(newPlayerBlockType);
+    console.log("Updated playerBlockType:", newPlayerBlockType);
+  } catch (err) {
+    console.error("Failed to update playerBlockType:", err);
+  }
+  };*/
+
+  const playerBlockName = objectsById[playerBlockType]?.name || "Unknown";
+  
+  const updatePlayerBlockTypeAndCave = async (playerPosition) => {
+    if (!playerPosition?.data) return;
+    try {
+      // Block directly below
+      const newPlayerBlockType = await getObjectTypeAt([
+        playerPosition.data.x,
+        playerPosition.data.y - 1,
+        playerPosition.data.z,
+      ]);
+      setPlayerBlockType(newPlayerBlockType);
+      console.log("Updated playerBlockType:", newPlayerBlockType);
+
+      // Check blocks below for types 1, 2, or 111, up to Y = -60
+      let found = false;
+      const maxDistance = playerPosition.data.y + 60;
+      for (let i = 1; i <= maxDistance; i++) {
+        const blockType = await getObjectTypeAt([
+          playerPosition.data.x,
+          playerPosition.data.y - i,
+          playerPosition.data.z,
+        ]);
+        if (blockType === 1 || blockType === 2 || blockType === 111) {
+          setDistanceToCave(i);
+          found = true;
+          console.log(`Found cave block type (${blockType}) at distance:`, i);
+          break;
+        }
+      }
+      if (!found) {
+        setDistanceToCave(null);
+      }
+    } catch (err) {
+      console.error("Failed to update playerBlockType or cave distance:", err);
+    }
+  };
+
+useEffect(() => {
+    if (playerPosition.data) {
+      console.log("Player position changed:", playerPosition.data);
+      //updatePlayerBlockType(playerPosition);
+      updatePlayerBlockTypeAndCave(playerPosition);
+
+    }
+  }, [playerPosition.data?.x, playerPosition.data?.y, playerPosition.data?.z]);
+      
+
+  
+
   if (!dustClient) {
     const url = `https://alpha.dustproject.org?debug-app=${window.location.origin}/dust-app.json`;
     return (
@@ -68,56 +138,26 @@ export default function App() {
     );
   }
 
-const [playerBlockType, setPlayerBlockType] = useState<number | null>(null);
 
-const updatePlayerBlockType = async (playerPosition) => {
-  if (!playerPosition?.data) return;
-  try {
-    const newPlayerBlockType = await getObjectTypeAt([
-      playerPosition.data.x,
-      playerPosition.data.y - 1,
-      playerPosition.data.z,
-    ]);
-    setPlayerBlockType(newPlayerBlockType);
-    console.log("Updated playerBlockType:", newPlayerBlockType);
-  } catch (err) {
-    console.error("Failed to update playerBlockType:", err);
-  }
-};
 
-useEffect(() => {
-  if (playerPosition.data) {
-    console.log("Player position changed:", playerPosition.data);
-    updatePlayerBlockType(playerPosition);
-  }
-}, [playerPosition.data?.x, playerPosition.data?.y, playerPosition.data?.z]);
+
 
 
   return (
     <div>
       <p>
         Hello Hello <AccountName address={dustClient.appContext.userAddress} />
+          
       </p>
       {playerPosition.data && (
         <div>
           <p>Your position: {JSON.stringify(playerPosition.data, null, " ")}</p>
-          <p> Standing on: {playerBlockType}</p>
+          <p> Standing on: {playerBlockName}</p>
+          <p>Distance to cave: {distanceToCave == null ? "Bedrock" : distanceToCave}</p>
+          
         </div>
       )}
       
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <span>Splat Risk:</span>
-        <div
-          style={{
-            width: "24px",
-            height: "24px",
-            borderRadius: "4px",
-            backgroundColor: isSplatRisk ? "red" : "green",
-            border: "2px solid #222",
-          }}
-          title={isSplatRisk ? "At risk if dig" : "No risk if dig"}
-        />
-      </div>
       
     </div>
   );
