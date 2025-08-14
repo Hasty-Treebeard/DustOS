@@ -23,7 +23,7 @@ export default defineWorld({
     },
   },
   // Replace this with a unique namespace
-  namespace: "template",
+  namespace: "dustos",
   systems: {
     ForceFieldProgram: {
       openAccess: false,
