@@ -10,12 +10,17 @@ import { resourceToHex } from "@latticexyz/common";
 // import IWorldAbi from "dustkit/out/IWorld.sol/IWorld.abi";
 import mudConfig from "contracts/mud.config";
 import CounterAbi from "contracts/out/CounterSystem.sol/CounterSystem.abi.json";
+import { getObjectTypeAt } from "./getObjectTypeAt";
+import { useState, useEffect } from "react";
+import type { Vec3 } from "@dust/world/internal";
 
 export default function App() {
   const { data: dustClient } = useDustClient();
   const syncStatus = useSyncStatus();
   const playerStatus = usePlayerStatus();
   const playerPosition = usePlayerPositionQuery();
+  const isSplatRisk = true; // Placeholder for actual splat risk logic
+
 
   const counter = useRecord({
     stash,
@@ -63,22 +68,49 @@ export default function App() {
     );
   }
 
+const [playerBlockType, setPlayerBlockType] = useState(null);
+
+const updatePlayerBlockType = async (playerPosition) => {
+const newPlayerBlockType = await getObjectTypeAt([
+         playerPosition.data.x,
+         playerPosition.data.y - 1,
+         playerPosition.data.z,
+       ]);
+setPlayerBlockType(newPlayerBlockType);
+}
+useEffect(() => {
+  if(playerPosition.data){
+  updatePlayerBlockType(playerPosition);
+}
+}, [playerPosition]);
+
+
   return (
     <div>
       <p>
-        Hello <AccountName address={dustClient.appContext.userAddress} />
+        Hello Hello <AccountName address={dustClient.appContext.userAddress} />
       </p>
       {playerPosition.data && (
-        <p>Your position: {JSON.stringify(playerPosition.data, null, " ")}</p>
+        <div>
+          <p>Your position: {JSON.stringify(playerPosition.data, null, " ")}</p>
+          <p> Standing on: {playerBlockType}</p>
+        </div>
       )}
-      <p>Counter: {counter?.value.toString() ?? "unset"}</p>
-      <button
-        onClick={() => increment.mutate()}
-        disabled={increment.isPending}
-        className="bg-blue-500 text-white p-2"
-      >
-        {increment.isPending ? "Incrementing..." : "Increment"}
-      </button>
+      
+      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <span>Splat Risk:</span>
+        <div
+          style={{
+            width: "24px",
+            height: "24px",
+            borderRadius: "4px",
+            backgroundColor: isSplatRisk ? "red" : "green",
+            border: "2px solid #222",
+          }}
+          title={isSplatRisk ? "At risk if dig" : "No risk if dig"}
+        />
+      </div>
+      
     </div>
   );
 }
