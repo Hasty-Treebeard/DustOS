@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IndexedDB Test</title>
+</head>
+<body>
+    <h1>IndexedDB Test</h1>
+    <button onclick="testDB()">Test Database</button>
+    <div id="result"></div>
+
+    <script>
+    async function testDB() {
+        const result = document.getElementById('result');
+        result.innerHTML = 'Testing...';
+        
+        try {
+            // Test basic IndexedDB functionality
+            const dbName = 'test-dust-map';
+            const request = indexedDB.open(dbName, 1);
+            
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('test')) {
+                    const store = db.createObjectStore('test', { keyPath: ['x', 'z'] });
+                    console.log('Created test store');
+                }
+            };
+            
+            request.onsuccess = (event) => {
+                const db = event.target.result;
+                
+                // Test write
+                const transaction = db.transaction(['test'], 'readwrite');
+                const store = transaction.objectStore('test');
+                
+                const testData = { x: 10, z: 20, blockType: 4, biome: 1 };
+                const putRequest = store.put(testData);
+                
+                putRequest.onsuccess = () => {
+                    console.log('Data saved successfully');
+                    
+                    // Test read
+                    const getTransaction = db.transaction(['test'], 'readonly');
+                    const getStore = getTransaction.objectStore('test');
+                    const getRequest = getStore.get([10, 20]);
+                    
+                    getRequest.onsuccess = () => {
+                        const retrieved = getRequest.result;
+                        if (retrieved && retrieved.blockType === 4) {
+                            result.innerHTML = '✅ IndexedDB is working correctly!<br>Saved and retrieved test data successfully.';
+                        } else {
+                            result.innerHTML = '❌ Data retrieval failed';
+                        }
+                        
+                        // Cleanup
+                        db.close();
+                        indexedDB.deleteDatabase(dbName);
+                    };
+                    
+                    getRequest.onerror = () => {
+                        result.innerHTML = '❌ Failed to read data: ' + getRequest.error;
+                        db.close();
+                    };
+                };
+                
+                putRequest.onerror = () => {
+                    result.innerHTML = '❌ Failed to save data: ' + putRequest.error;
+                    db.close();
+                };
+            };
+            
+            request.onerror = () => {
+                result.innerHTML = '❌ Failed to open database: ' + request.error;
+            };
+            
+        } catch (error) {
+            result.innerHTML = '❌ Error: ' + error.message;
+        }
+    }
+    </script>
+</body>
+</html>
