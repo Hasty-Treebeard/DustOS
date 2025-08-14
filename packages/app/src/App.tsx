@@ -14,6 +14,8 @@ import { getObjectTypeAt } from "./getObjectTypeAt";
 import { useState, useEffect } from "react";
 import { objects, objectsById } from "@dust/world/internal";
 import type { Vec3 } from "@dust/world/internal";
+import { useCursorPositionQuery } from "./common/useCursorPositionQuery";
+import { getBiome } from "@dust/world/internal";
 
 export default function App() {
   const { data: dustClient } = useDustClient();
@@ -21,7 +23,7 @@ export default function App() {
   const playerStatus = usePlayerStatus();
   const playerPosition = usePlayerPositionQuery();
   const isSplatRisk = false; // Placeholder for actual splat risk logic
-  
+  const cursorPosition = useCursorPositionQuery();
 
   const counter = useRecord({
     stash,
@@ -52,26 +54,20 @@ export default function App() {
   });
 
   const [playerBlockType, setPlayerBlockType] = useState<number | null>(null);
+  const [cursorBlockType, setCursorBlockType] = useState<number | null>(null);
 
-  //const updatePlayerBlockType = async (playerPosition) => {
+ 
   const [distanceToCave, setDistanceToCave] = useState<number | null>(null);
-/*  if (!playerPosition?.data) return;
-  try {
-    const newPlayerBlockType = await getObjectTypeAt([
-      playerPosition.data.x,
-      playerPosition.data.y - 1,
-      playerPosition.data.z,
-    ]);
-    setPlayerBlockType(newPlayerBlockType);
-    console.log("Updated playerBlockType:", newPlayerBlockType);
-  } catch (err) {
-    console.error("Failed to update playerBlockType:", err);
-  }
-  };*/
+  const [distanceToSurface, setDistanceToSurface] = useState<number | null>(null);
 
-  const playerBlockName = objectsById[playerBlockType]?.name || "Unknown";
+  //const biomeName = getBiome(
+   // playerPosition.data ? [playerPosition.data.x, playerPosition.data.y, playerPosition.data.z] as Vec3 : [0, 0, 0]
+  //)?.name || "Unknown Biome";
   
-  const updatePlayerBlockTypeAndCave = async (playerPosition) => {
+  const playerBlockName = objectsById[playerBlockType]?.name || "Unknown";
+  const cursorBlockName = objectsById[cursorBlockType]?.name || "Unknown";
+  
+  const updatePlayerBlockColumn = async (playerPosition) => {
     if (!playerPosition?.data) return;
     try {
       // Block directly below
@@ -83,10 +79,20 @@ export default function App() {
       setPlayerBlockType(newPlayerBlockType);
       console.log("Updated playerBlockType:", newPlayerBlockType);
 
+      // Block at Cursor Position
+      const cursorBlockType = await getObjectTypeAt([
+        cursorPosition.data.x,
+        cursorPosition.data.y,
+        cursorPosition.data.z,
+      ]);
+      setCursorBlockType(cursorBlockType);
+      console.log("Updated cursorBlockType:", cursorBlockType);
+
+
       // Check blocks below for types 1, 2, or 111, up to Y = -60
-      let found = false;
-      const maxDistance = playerPosition.data.y + 60;
-      for (let i = 1; i <= maxDistance; i++) {
+      let foundBelow = false;
+      const maxDistanceDown = playerPosition.data.y + 60;
+      for (let i = 1; i <= maxDistanceDown; i++) {
         const blockType = await getObjectTypeAt([
           playerPosition.data.x,
           playerPosition.data.y - i,
@@ -94,14 +100,36 @@ export default function App() {
         ]);
         if (blockType === 1 || blockType === 2 || blockType === 111) {
           setDistanceToCave(i);
-          found = true;
+          foundBelow = true;
           console.log(`Found cave block type (${blockType}) at distance:`, i);
           break;
         }
       }
-      if (!found) {
+      if (!foundBelow) {
         setDistanceToCave(null);
       }
+      
+      // Check blocks above for types 1, 2, or 111, up to Y = 324
+      let foundAbove = false;
+      const maxDistanceUp = 322 - playerPosition.data.y;
+      for (let j = 2; j <= maxDistanceUp; j++) {
+        const blockType = await getObjectTypeAt([
+          playerPosition.data.x,
+          playerPosition.data.y + j,
+          playerPosition.data.z,
+        ]);
+        if (blockType === 1 || blockType === 2 || blockType === 111) {
+          setDistanceToSurface(j);
+          foundAbove = true;
+          console.log(`Found cave block type (${blockType}) at distance:`, j);
+          break;
+        }
+      }
+      if (!foundAbove) {
+        setDistanceToSurface(null);
+      }
+
+      
     } catch (err) {
       console.error("Failed to update playerBlockType or cave distance:", err);
     }
@@ -111,7 +139,7 @@ useEffect(() => {
     if (playerPosition.data) {
       console.log("Player position changed:", playerPosition.data);
       //updatePlayerBlockType(playerPosition);
-      updatePlayerBlockTypeAndCave(playerPosition);
+      updatePlayerBlockColumn(playerPosition);
 
     }
   }, [playerPosition.data?.x, playerPosition.data?.y, playerPosition.data?.z]);
@@ -153,8 +181,11 @@ useEffect(() => {
         <div>
           <p>Your position: {JSON.stringify(playerPosition.data, null, " ")}</p>
           <p> Standing on: {playerBlockName}</p>
-          <p>Distance to cave: {distanceToCave == null ? "Bedrock" : distanceToCave}</p>
-          
+          <p>Distance down to cave: {distanceToCave == null ? "Bedrock" : distanceToCave}</p>
+          <p>Distance up to surface: {distanceToSurface == 2 ? "Surface" : distanceToSurface}</p>
+          <p>Cursor Position: {JSON.stringify(cursorPosition.data, null, " ")}</p>
+          <p>Pointing at: {cursorBlockName}</p>
+
         </div>
       )}
       
