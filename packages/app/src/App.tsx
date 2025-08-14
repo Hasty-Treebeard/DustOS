@@ -19,7 +19,7 @@ export default function App() {
   const syncStatus = useSyncStatus();
   const playerStatus = usePlayerStatus();
   const playerPosition = usePlayerPositionQuery();
-  const isSplatRisk = true; // Placeholder for actual splat risk logic
+  const isSplatRisk = false; // Placeholder for actual splat risk logic
 
 
   const counter = useRecord({
@@ -68,21 +68,29 @@ export default function App() {
     );
   }
 
-const [playerBlockType, setPlayerBlockType] = useState(null);
+const [playerBlockType, setPlayerBlockType] = useState<number | null>(null);
 
 const updatePlayerBlockType = async (playerPosition) => {
-const newPlayerBlockType = await getObjectTypeAt([
-         playerPosition.data.x,
-         playerPosition.data.y - 1,
-         playerPosition.data.z,
-       ]);
-setPlayerBlockType(newPlayerBlockType);
-}
+  if (!playerPosition?.data) return;
+  try {
+    const newPlayerBlockType = await getObjectTypeAt([
+      playerPosition.data.x,
+      playerPosition.data.y - 1,
+      playerPosition.data.z,
+    ]);
+    setPlayerBlockType(newPlayerBlockType);
+    console.log("Updated playerBlockType:", newPlayerBlockType);
+  } catch (err) {
+    console.error("Failed to update playerBlockType:", err);
+  }
+};
+
 useEffect(() => {
-  if(playerPosition.data){
-  updatePlayerBlockType(playerPosition);
-}
-}, [playerPosition]);
+  if (playerPosition.data) {
+    console.log("Player position changed:", playerPosition.data);
+    updatePlayerBlockType(playerPosition);
+  }
+}, [playerPosition.data?.x, playerPosition.data?.y, playerPosition.data?.z]);
 
 
   return (
