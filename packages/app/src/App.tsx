@@ -185,25 +185,96 @@ useEffect(() => {
 
 
   return (
-    <div>
-      <p>
-        Hello Hello <AccountName address={dustClient.appContext.userAddress} />
-          
-      </p>
-      {playerPosition.data && (
-        <div>
-          <p>Your position: {JSON.stringify(playerPosition.data, null, " ")}</p>
-          <p> Standing on: {playerBlockName}</p>
-          <p>Distance down to cave: {distanceToCave == null ? "Bedrock" : distanceToCave}</p>
-          <p>Distance up to surface: {distanceToSurface == 2 ? "Surface" : distanceToSurface}</p>
-          <p>Cursor Position: {JSON.stringify(cursorPosition.data, null, " ")}</p>
-          <p>Pointing at: {cursorBlockName}</p>
-          <p>Biome: {biomeName}</p>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {/* Player name/title row above toolbar */}
+          <div style={{
+            width: '1100px',
+            height: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontFamily: 'Press Start 2P, monospace',
+            fontSize: 18,
+            color: '#38a169',
+            background: '#000',
+            margin: '0 auto',
+            paddingLeft: '16px',
+            paddingRight: '16px',
+            boxSizing: 'border-box',
+            letterSpacing: '1px',
+            textShadow: '0 1px 2px #013220',
+          }}>
+            <div>
+              {playerPosition.data && <AccountName address={dustClient?.appContext?.userAddress ?? ""} />}
+            </div>
+            <div style={{
+              fontFamily: 'Fira Mono, Menlo, Monaco, Consolas, monospace',
+              fontSize: 16,
+              color: '#eee',
+              background: 'none',
+              letterSpacing: '0.5px',
+              fontWeight: 600,
+              textShadow: '0 1px 2px #222',
+            }}>
+              DUST OS v1.0 - The Lorax
+            </div>
+          </div>
+      {/* Toolbar row */}
+      <div style={{
+        width: '1100px',
+        height: '61px',
+        background: '#1e3a24', // softer forest green
+        padding: '6px 0',
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: '6px solid #38a169', // softer pixel-style border
+        boxShadow: '0 2.7px 10.8px 0 rgba(56,161,105,0.18)',
+        fontFamily: 'Press Start 2P, monospace', // pixel font
+        margin: '0 auto',
+        imageRendering: 'pixelated',
+        borderRadius: '0',
+        zIndex: 1000
+      }}>
+        {playerPosition.data && (
+          <>
+            <ToolbarItem title="Position:" value={playerPosition.data ? `${playerPosition.data.x}, ${playerPosition.data.y}, ${playerPosition.data.z}` : "-"} />
+            <ToolbarItem title="Standing on:" value={playerBlockName} />
+            <ToolbarItem title="Depth to Cave:" value={distanceToCave == null ? "Bedrock" : distanceToCave} />
+            <ToolbarItem title="Up to Surface" value={distanceToSurface == 2 ? "Here" : distanceToSurface} />
+            <ToolbarItem title="Cursor:" value={cursorPosition.data ? `${cursorPosition.data.x}, ${cursorPosition.data.y}, ${cursorPosition.data.z}` : "-"} />
+            <ToolbarItem title="Pointing at:" value={cursorBlockName} />
+            <ToolbarItem title="Biome:" value={biomeName} />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
-        </div>
-      )}
-      
-      
+// ToolbarItem component for clean column layout
+function ToolbarItem({ title, value }: { title: string, value: React.ReactNode }) {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 130,
+      margin: '0 10px',
+      padding: '4px 0',
+      background: '#13861dff', // slightly lighter green for item
+      border: '3.6px solid #013220', // pixel-style border
+      color: '#fff', // high contrast font
+      fontFamily: 'Press Start 2P, monospace',
+      fontSize: 11.7,
+      boxShadow: '0 1.8px 7.2px 0 rgba(20,83,45,0.13)',
+      letterSpacing: '1px',
+      imageRendering: 'pixelated',
+    }}>
+      <span style={{ fontSize: 13, fontWeight: 700, marginBottom: 1.3, color: '#fff', textDecoration: 'underline', textUnderlineOffset: '2px', textShadow: '0 1px 2px #013220' }}>{title}</span>
+      <span style={{ fontSize: 14, fontWeight: 650, color: '#fff', textShadow: '0 1px 2px #013220' }}>{value}</span>
     </div>
   );
 }
