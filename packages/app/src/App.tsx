@@ -15,7 +15,10 @@ import { useState, useEffect } from "react";
 import { objects, objectsById } from "@dust/world/internal";
 import type { Vec3 } from "@dust/world/internal";
 import { useCursorPositionQuery } from "./common/useCursorPositionQuery";
-import { getBiome } from "@dust/world/internal";
+import { getBiomeName } from "@dust/world/internal";
+import { worldAddress
+ } from "./common/worldAddress";
+import { publicClient } from "./chain";
 
 export default function App() {
   const { data: dustClient } = useDustClient();
@@ -24,6 +27,7 @@ export default function App() {
   const playerPosition = usePlayerPositionQuery();
   const isSplatRisk = false; // Placeholder for actual splat risk logic
   const cursorPosition = useCursorPositionQuery();
+
 
   const counter = useRecord({
     stash,
@@ -60,9 +64,10 @@ export default function App() {
   const [distanceToCave, setDistanceToCave] = useState<number | null>(null);
   const [distanceToSurface, setDistanceToSurface] = useState<number | null>(null);
 
-  //const biomeName = getBiome(
-   // playerPosition.data ? [playerPosition.data.x, playerPosition.data.y, playerPosition.data.z] as Vec3 : [0, 0, 0]
-  //)?.name || "Unknown Biome";
+  const [biomeName, setBiomeName] = useState<string | null>(null);
+
+  
+   
   
   const playerBlockName = objectsById[playerBlockType]?.name || "Unknown";
   const cursorBlockName = objectsById[cursorBlockType]?.name || "Unknown";
@@ -129,6 +134,14 @@ export default function App() {
         setDistanceToSurface(null);
       }
 
+      const newBiome = await getBiomeName(worldAddress, publicClient, [
+         playerPosition.data.x,
+          playerPosition.data.y,
+          playerPosition.data.z,
+      ]);
+      setBiomeName(newBiome);
+      console.log("Biome Name:", biomeName);
+
       
     } catch (err) {
       console.error("Failed to update playerBlockType or cave distance:", err);
@@ -185,6 +198,7 @@ useEffect(() => {
           <p>Distance up to surface: {distanceToSurface == 2 ? "Surface" : distanceToSurface}</p>
           <p>Cursor Position: {JSON.stringify(cursorPosition.data, null, " ")}</p>
           <p>Pointing at: {cursorBlockName}</p>
+          <p>Biome: {biomeName}</p>
 
         </div>
       )}
