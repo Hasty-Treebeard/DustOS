@@ -1,5 +1,7 @@
 # DUST OS - A modular user interface to enhance the DUST experience
 
+-- Read Me is default dust template text --
+
 This repository contains example programs for DUST that demonstrate different patterns and use cases for smart entities in the game.
 
 ## Overview
