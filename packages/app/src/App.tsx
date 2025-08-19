@@ -8,12 +8,12 @@ import { useRecord } from "@latticexyz/stash/react";
 import { useMutation } from "@tanstack/react-query";
 import { resourceToHex } from "@latticexyz/common";
 // import IWorldAbi from "dustkit/out/IWorld.sol/IWorld.abi";
-import mudConfig from "contracts/mud.config";
-import CounterAbi from "contracts/out/CounterSystem.sol/CounterSystem.abi.json";
+//import mudConfig from "contracts/mud.config";
+//import CounterAbi from "contracts/out/CounterSystem.sol/CounterSystem.abi.json";
 import { getObjectTypeAt } from "./getObjectTypeAt";
 import { useState, useEffect } from "react";
 import { objects, objectsById } from "@dust/world/internal";
-import type { Vec3 } from "@dust/world/internal";
+//import type { Vec3 } from "@dust/world/internal";
 import { useCursorPositionQuery } from "./common/useCursorPositionQuery";
 import { getBiomeName } from "@dust/world/internal";
 import { worldAddress
@@ -25,7 +25,7 @@ export default function App() {
   const syncStatus = useSyncStatus();
   const playerStatus = usePlayerStatus();
   const playerPosition = usePlayerPositionQuery();
-  const isSplatRisk = false; // Placeholder for actual splat risk logic
+  //const isSplatRisk = false; // Placeholder for actual splat risk logic
   const cursorPosition = useCursorPositionQuery();
 
 
