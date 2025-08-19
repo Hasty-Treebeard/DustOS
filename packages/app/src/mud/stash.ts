@@ -1,7 +1,7 @@
 import { createStash } from "@latticexyz/stash/internal";
 import type { SyncFilter } from "@latticexyz/store-sync";
 import dustWorldConfig from "@dust/world/mud.config";
-import contractsConfig from "contracts/mud.config";
+//import contractsConfig from "contracts/mud.config";
 import { worldAddress } from "../common/worldAddress";
 import { syncToStash } from "@latticexyz/store-sync/internal";
 import { redstone } from "./redstone";
@@ -12,10 +12,8 @@ const selectedDustTables = {
 };
 
 export const tables = {
-  ...selectedDustTables,
-  ...contractsConfig.namespaces[
-    contractsConfig.namespace as keyof typeof contractsConfig.namespaces
-  ].tables,
+  ...selectedDustTables
+  
 };
 
 export const stashConfig = {
@@ -23,7 +21,7 @@ export const stashConfig = {
     "": {
       tables: selectedDustTables,
     },
-    ...contractsConfig.namespaces,
+    
   },
 };
 
