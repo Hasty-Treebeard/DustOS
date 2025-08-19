@@ -1,4 +1,0 @@
-{
-  "extends": "../../tsconfig.json",
-  "include": ["mud.config.ts", "out", "ts"]
-}
