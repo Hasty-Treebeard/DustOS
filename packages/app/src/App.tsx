@@ -3,10 +3,10 @@ import { useSyncStatus } from "./mud/useSyncStatus";
 import { usePlayerPositionQuery } from "./common/usePlayerPositionQuery";
 import { AccountName } from "./common/AccountName";
 import { useDustClient } from "./common/useDustClient";
-import { stash, tables } from "./mud/stash";
-import { useRecord } from "@latticexyz/stash/react";
-import { useMutation } from "@tanstack/react-query";
-import { resourceToHex } from "@latticexyz/common";
+//import { stash, tables } from "./mud/stash";
+//import { useRecord } from "@latticexyz/stash/react";
+//import { useMutation } from "@tanstack/react-query";
+//import { resourceToHex } from "@latticexyz/common";
 // import IWorldAbi from "dustkit/out/IWorld.sol/IWorld.abi";
 //import mudConfig from "contracts/mud.config";
 //import CounterAbi from "contracts/out/CounterSystem.sol/CounterSystem.abi.json";
@@ -29,14 +29,14 @@ export default function App() {
   const cursorPosition = useCursorPositionQuery();
 
 
-  const counter = useRecord({
+  /*const counter = useRecord({
     stash,
   
     table: tables.Counter,
     key: {},
-  });
+  });*/
 
-  const increment = useMutation({
+  /* const increment = useMutation({
     mutationFn: () => {
       if (!dustClient) throw new Error("Dust client not connected");
       return dustClient.provider.request({
@@ -55,7 +55,7 @@ export default function App() {
         ],
       });
     },
-  });
+  }); */
 
   const [playerBlockType, setPlayerBlockType] = useState<number | null>(null);
   const [cursorBlockType, setCursorBlockType] = useState<number | null>(null);
