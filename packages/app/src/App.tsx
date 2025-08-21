@@ -84,16 +84,6 @@ export default function App() {
       setPlayerBlockType(newPlayerBlockType);
       //console.log("Updated playerBlockType:", newPlayerBlockType);
 
-      // Block at Cursor Position
-      const cursorBlockType = await getObjectTypeAt([
-        cursorPosition.data.x,
-        cursorPosition.data.y,
-        cursorPosition.data.z,
-      ]);
-      setCursorBlockType(cursorBlockType);
-      //console.log("Updated cursorBlockType:", cursorBlockType);
-
-
       // Check blocks below for types 1, 2, or 111, up to Y = -60
       let foundBelow = false;
       const maxDistanceDown = playerPosition.data.y + 60;
@@ -148,6 +138,22 @@ export default function App() {
     }
   };
 
+  const updateCursorStats = async (cursorPosition) => {
+    if (!cursorPosition?.data) return;
+    try {
+      // Block at Cursor Position
+      const cursorBlockType = await getObjectTypeAt([
+        cursorPosition.data.x,
+        cursorPosition.data.y,
+        cursorPosition.data.z,
+      ]);
+      setCursorBlockType(cursorBlockType);
+      //console.log("Updated cursorBlockType:", cursorBlockType);
+      } catch (err) {
+      console.error("Failed to update cursor stats:", err);
+    }
+  };
+
 useEffect(() => {
     if (playerPosition.data) {
       //console.log("Player position changed:", playerPosition.data);
@@ -157,7 +163,12 @@ useEffect(() => {
     }
   }, [playerPosition.data?.x, playerPosition.data?.y, playerPosition.data?.z]);
       
-
+useEffect(() => {
+    if (cursorPosition.data) {
+      //console.log("Cursor position changed:", cursorPosition.data);
+      updateCursorStats(cursorPosition);
+    }
+  }, [cursorPosition.data?.x, cursorPosition.data?.y, cursorPosition.data?.z]);
   
 
   if (!dustClient) {
