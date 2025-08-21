@@ -15,14 +15,14 @@ export function usePlayerPositionQuery() {
     queryFn: !dustClient
       ? skipToken
       : async () => {
-          console.log("Refetching player position...");
+          //console.log("Refetching player position...");
           const position = await dustClient.provider.request({
             method: "getPlayerPosition",
             params: {
               entity: "0x",
             },
           });
-          console.log("Backend returned position:", position);
+          //console.log("Backend returned position:", position);
           return {
             x: Math.floor(position.x),
             y: Math.floor(position.y),

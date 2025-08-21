@@ -82,7 +82,7 @@ export default function App() {
         playerPosition.data.z,
       ]);
       setPlayerBlockType(newPlayerBlockType);
-      console.log("Updated playerBlockType:", newPlayerBlockType);
+      //console.log("Updated playerBlockType:", newPlayerBlockType);
 
       // Block at Cursor Position
       const cursorBlockType = await getObjectTypeAt([
@@ -91,7 +91,7 @@ export default function App() {
         cursorPosition.data.z,
       ]);
       setCursorBlockType(cursorBlockType);
-      console.log("Updated cursorBlockType:", cursorBlockType);
+      //console.log("Updated cursorBlockType:", cursorBlockType);
 
 
       // Check blocks below for types 1, 2, or 111, up to Y = -60
@@ -106,7 +106,7 @@ export default function App() {
         if (blockType === 1 || blockType === 2 || blockType === 111) {
           setDistanceToCave(i);
           foundBelow = true;
-          console.log(`Found cave block type (${blockType}) at distance:`, i);
+          //console.log(`Found cave block type (${blockType}) at distance:`, i);
           break;
         }
       }
@@ -126,7 +126,7 @@ export default function App() {
         if (blockType === 1 || blockType === 2 || blockType === 111) {
           setDistanceToSurface(j);
           foundAbove = true;
-          console.log(`Found cave block type (${blockType}) at distance:`, j);
+          //console.log(`Found cave block type (${blockType}) at distance:`, j);
           break;
         }
       }
@@ -140,7 +140,7 @@ export default function App() {
           playerPosition.data.z,
       ]);
       setBiomeName(newBiome);
-      console.log("Biome Name:", biomeName);
+      //console.log("Biome Name:", biomeName);
 
       
     } catch (err) {
@@ -150,7 +150,7 @@ export default function App() {
 
 useEffect(() => {
     if (playerPosition.data) {
-      console.log("Player position changed:", playerPosition.data);
+      //console.log("Player position changed:", playerPosition.data);
       //updatePlayerBlockType(playerPosition);
       updatePlayerBlockColumn(playerPosition);
 

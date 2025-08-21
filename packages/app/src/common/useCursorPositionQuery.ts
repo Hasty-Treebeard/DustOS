@@ -15,14 +15,14 @@ export function useCursorPositionQuery() {
     queryFn: !dustClient
       ? skipToken
       : async () => {
-          console.log("Refetching cursor position...");
+          //console.log("Refetching cursor position...");
           const position = await dustClient.provider.request({
             method: "getCursorPosition",
           });
           if (!position) {
             return null;
           }
-          console.log("Backend returned cursor position:", position);
+          //console.log("Backend returned cursor position:", position);
           return {
             x: Math.floor(position.x),
             y: Math.floor(position.y),
