@@ -165,7 +165,7 @@ useEffect(() => {
     return (
       <div className="flex flex-col h-screen items-center justify-center">
         <a href={url} className="text-center text-blue-500 underline">
-          Open this page in DUST to connect to dustkit
+          Open this app in DUST
         </a>
       </div>
     );
