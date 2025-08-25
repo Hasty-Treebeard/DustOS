@@ -2,7 +2,7 @@
   "name": "dust-os",
   "private": true,
   "scripts": {
-    "build": "pnpm recursive run build",
+    "build": "pnpm --filter app build",
     "dev": "shx rm -rf packages/contracts/deploys/31337/latest.json && pnpm --filter app dev"
   },
   "workspaces": [
