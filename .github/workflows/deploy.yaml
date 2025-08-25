@@ -32,17 +32,15 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install -g pnpm@9.14.2
-      - name: Install MUD CLI
-        run: npm install -g @latticexyz/mud@latest
-      - name: Verify MUD CLI
-        run: mud --version
       - name: Install project dependencies
         run: pnpm install
+      - name: Verify MUD CLI
+        run: npx mud --version
       - name: Show environment info
         run: |
           echo "Node version: $(node --version)"
           echo "pnpm version: $(pnpm --version)"
-          echo "MUD CLI version: $(mud --version)"
+          echo "MUD CLI version: $(npx mud --version)"
           echo "Current directory: $(pwd)"
           echo "Directory contents: $(ls -la)"
       - name: Build
