@@ -28,9 +28,23 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
+          node-version: '20'
           cache: pnpm
       - name: Install dependencies
         run: pnpm install -g pnpm@9.14.2
+      - name: Install MUD CLI
+        run: npm install -g @latticexyz/mud@latest
+      - name: Verify MUD CLI
+        run: mud --version
+      - name: Install project dependencies
+        run: pnpm install
+      - name: Show environment info
+        run: |
+          echo "Node version: $(node --version)"
+          echo "pnpm version: $(pnpm --version)"
+          echo "MUD CLI version: $(mud --version)"
+          echo "Current directory: $(pwd)"
+          echo "Directory contents: $(ls -la)"
       - name: Build
         run: pnpm build
       - name: Setup Pages
