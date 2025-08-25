@@ -3,11 +3,12 @@
   "name": "DUST OS",
   "startUrl": "/",
   "defaultSize": {
-    "width": 1100,
-    "height": 85
+    "width": 1320,
+    "height": 800
   },
   "defaultPosition": {
     "top": 50,
     "right": 200
-  }
+  },
+  "background": "transparent"
 }

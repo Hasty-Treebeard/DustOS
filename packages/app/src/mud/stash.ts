@@ -1,7 +1,7 @@
 import { createStash } from "@latticexyz/stash/internal";
 import type { SyncFilter } from "@latticexyz/store-sync";
 import dustWorldConfig from "@dust/world/mud.config";
-//import contractsConfig from "contracts/mud.config";
+import dustProgramsConfig from "@dust/programs/mud.config";
 import { worldAddress } from "../common/worldAddress";
 import { syncToStash } from "@latticexyz/store-sync/internal";
 import { redstone } from "./redstone";
@@ -9,11 +9,21 @@ import { redstone } from "./redstone";
 const selectedDustTables = {
   Energy: dustWorldConfig.tables.Energy,
   EntityObjectType: dustWorldConfig.tables.EntityObjectType,
+  Fragment: dustWorldConfig.tables.Fragment,
+  Machine: dustWorldConfig.tables.Machine,
 };
 
+const selectedProgramTables = {
+  dfprograms_1__EntityAccessGroup:
+    dustProgramsConfig.tables.dfprograms_1__EntityAccessGroup,
+  dfprograms_1__AccessGroupOwner:
+    dustProgramsConfig.tables.dfprograms_1__AccessGroupOwner,
+};
+
+
 export const tables = {
-  ...selectedDustTables
-  
+  ...selectedDustTables,
+  ...selectedProgramTables,
 };
 
 export const stashConfig = {
@@ -21,7 +31,9 @@ export const stashConfig = {
     "": {
       tables: selectedDustTables,
     },
-    
+    dfprograms_1: {
+      tables: selectedProgramTables,
+    },
   },
 };
 
