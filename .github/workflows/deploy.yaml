@@ -30,7 +30,7 @@ jobs:
         with:
           cache: pnpm
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install -g pnpm@9.14.2
       - name: Build
         run: pnpm build
       - name: Setup Pages
