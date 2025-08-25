@@ -6,9 +6,5 @@
     "width": 1320,
     "height": 800
   },
-  "defaultPosition": {
-    "top": "calc(50vh - 400px)",
-    "left": "calc(50vw - 660px)"
-  },
   "background": "transparent"
 }
