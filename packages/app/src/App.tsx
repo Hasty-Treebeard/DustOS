@@ -48,7 +48,7 @@ export default function App() {
     return (
       <div className="flex flex-col h-screen items-center justify-center">
         <p className="text-center bg-white px-2 py-1 rounded shadow">
-        <span className="block">DUST OS v1.1 - Loading... {syncStatus.percentage.toFixed(2)}%</span>
+        <span className="block">DUST OS v1.2 - Loading... {syncStatus.percentage.toFixed(2)}%</span>
         <span className="block">Align window to top right corner for optimal experience</span>
           </p>
       </div>
@@ -85,19 +85,30 @@ export default function App() {
         background: 'transparent',
         borderCollapse: 'collapse',
         outline: '1px solid red',
+        justifyItems: 'end', // Align grid items to the right
+        gridColumn: '1', // Ensure toolbar spans the left column
       }}>
         
         {/* Top Left - Toolbar */}
-        <Toolbar 
-          playerPosition={playerPosition.data}
-          playerBlockName={playerBlockType != null ? (objectsById as any)[playerBlockType]?.name ?? "Unknown" : "Unknown"}
-          distanceToCave={distanceToCave}
-          distanceToSurface={distanceToSurface}
-          cursorPosition={cursorPosition.data}
-          cursorBlockName={cursorBlockType != null ? (objectsById as any)[cursorBlockType]?.name ?? "Unknown" : "Unknown"}
-          biomeName={biomeName}
-          dustClient={dustClient}
-        />
+        <div style={{
+          gridColumn: '1',
+          gridRow: '1',
+          justifySelf: 'end', // Align toolbar to the right side of its grid cell
+          width: 'fit-content', // Allow toolbar to shrink to content
+          display: 'flex',
+          justifyContent: 'flex-end', // Ensure content aligns to the right
+        }}>
+          <Toolbar 
+            playerPosition={playerPosition.data}
+            playerBlockName={playerBlockType != null ? (objectsById as any)[playerBlockType]?.name ?? "Unknown" : "Unknown"}
+            distanceToCave={distanceToCave}
+            distanceToSurface={distanceToSurface}
+            cursorPosition={cursorPosition.data}
+            cursorBlockName={cursorBlockType != null ? (objectsById as any)[cursorBlockType]?.name ?? "Unknown" : "Unknown"}
+            biomeName={biomeName}
+            dustClient={dustClient}
+          />
+        </div>
         
         {/* Top Center - Debug Panel */}
         <div style={{

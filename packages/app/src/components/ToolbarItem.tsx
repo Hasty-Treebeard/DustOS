@@ -21,8 +21,8 @@ export function ToolbarItem({ title, value }: ToolbarItemProps) {
       boxShadow: '0 1.8px 7.2px 0 rgba(20,83,45,0.13)',
       letterSpacing: '1px',
     }}>
-      <span style={{ fontSize: 14, fontWeight: 700, marginBottom: 1.3, color: '#fff', textDecoration: 'underline', textUnderlineOffset: '2px', textShadow: '0 1px 2px #013220' }}>{title}</span>
-      <span style={{ fontSize: 15, fontWeight: 650, color: '#fff', textShadow: '0 1px 2px #013220' }}>{value}</span>
+      <span style={{ fontSize: 15, fontWeight: 500, marginBottom: 1.3, color: '#fff', textDecoration: 'underline', textUnderlineOffset: '2px', textShadow: '0 1px 2px #013220' }}>{title}</span>
+      <span style={{ fontSize: 16, fontWeight: 500, color: '#fff', textShadow: '0 1px 2px #013220' }}>{value}</span>
     </div>
   );
 }
