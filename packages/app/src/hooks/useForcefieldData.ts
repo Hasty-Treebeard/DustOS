@@ -32,12 +32,12 @@ export function useForcefieldData(playerPosition: { data: any }): ForcefieldData
       const entities = stash.getKeys({ table: tables.Energy });
       
       // Debug: Let's see what tables are available
-      console.log('Available tables:', Object.keys(tables));
-      console.log('Energy entities found:', Object.keys(entities).length);
+     //console.log('Available tables:', Object.keys(tables));
+      //  console.log('Energy entities found:', Object.keys(entities).length);
       
       return entities;
     } catch (error) {
-      console.error('Forcefield hook: Error getting energy entities:', error);
+      //console.error('Forcefield hook: Error getting energy entities:', error);
       return [];
     }
   }, [syncStatus.isLive]);
@@ -126,7 +126,7 @@ export function useForcefieldData(playerPosition: { data: any }): ForcefieldData
           });
           
           if (accessGroup) {
-            console.log('Found access group:', accessGroup);
+            //console.log('Found access group:', accessGroup);
             
             // Step 2: Get the owner from the access group
             const ownerRecord = stash.getRecord({ 
@@ -135,20 +135,20 @@ export function useForcefieldData(playerPosition: { data: any }): ForcefieldData
             });
             
             if (ownerRecord) {
-              console.log('Found owner record:', ownerRecord);
-              console.log('Owner entity ID:', ownerRecord.owner);
+              //console.log('Found owner record:', ownerRecord);
+              //console.log('Owner entity ID:', ownerRecord.owner);
               
               // Use decodePlayer to convert the entity ID to an Ethereum address
               try {
                 if (ownerRecord.owner && typeof ownerRecord.owner === 'string') {
                   const playerAddress = decodePlayer(ownerRecord.owner as Hex);
-                  console.log('Decoded player address:', playerAddress);
+                  //console.log('Decoded player address:', playerAddress);
                   ownerAddress = playerAddress;
                 } else {
-                  console.log('Owner record has invalid owner field:', ownerRecord.owner);
+                  //console.log('Owner record has invalid owner field:', ownerRecord.owner);
                 }
               } catch (error) {
-                console.log('Could not decode player address:', error);
+                //console.log('Could not decode player address:', error);
                 // Don't set ownerAddress if decodePlayer fails
                 ownerAddress = undefined;
               }
@@ -156,7 +156,7 @@ export function useForcefieldData(playerPosition: { data: any }): ForcefieldData
           }
           
         } catch (error) {
-          console.log('Could not get owner through access group chain:', error);
+          //console.log('Could not get owner through access group chain:', error);
         }
 
         return {

@@ -32,7 +32,6 @@ export function Toolbar({
       flexDirection: 'column',
       boxShadow: '0 2.7px 10.8px 0 rgba(56,161,105,0.18)',
       fontFamily: 'Press Start 2P, monospace',
-      imageRendering: 'pixelated',
       borderRadius: '0',
       zIndex: 1000,
       height: 'fit-content',
@@ -78,7 +77,7 @@ export function Toolbar({
 
       {/* Stats Row */}
       <div style={{
-        padding: '6px 0',
+        padding: '10px 0',
         display: 'flex',
         flexDirection: 'row',
         alignItems: 'center',
