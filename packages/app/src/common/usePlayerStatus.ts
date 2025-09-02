@@ -3,9 +3,27 @@ import { stash, tables } from "../mud/stash";
 import { useMemo } from "react";
 import { bigIntMax } from "@latticexyz/common/utils";
 import { usePlayerEntityId } from "./usePlayerEntityId";
+import { encodePlayer } from "@dust/world/internal";
 
 export function usePlayerStatus(): "alive" | "dead" {
-  const { data: playerEntityId } = usePlayerEntityId();
+  const { data: playerWalletAddress, isLoading: isWalletLoading } = usePlayerEntityId();
+
+  // Don't proceed if wallet is still loading or not available
+  if (isWalletLoading || !playerWalletAddress) {
+    return "dead"; // Default to dead while loading
+  }
+
+  // Convert wallet address to player entity ID using encodePlayer
+  const playerEntityId = useMemo(() => {
+    if (!playerWalletAddress) return null;
+    try {
+      const entityId = encodePlayer(playerWalletAddress);
+      return entityId;
+    } catch (error) {
+      console.error('usePlayerStatus: Error encoding player entity ID:', error);
+      return null;
+    }
+  }, [playerWalletAddress]);
 
   const energy = useRecord({
     stash,

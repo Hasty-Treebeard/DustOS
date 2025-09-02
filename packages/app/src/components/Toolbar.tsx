@@ -1,16 +1,22 @@
 import { useState } from 'react';
 import { ToolbarItem } from './ToolbarItem';
 import { AccountName } from '../common/AccountName';
+import type { PlayerEnergyData } from '../hooks/usePlayerEnergy';
+
+
 
 interface ToolbarProps {
-  playerPosition: any;
-  playerBlockName: string;
-  distanceToCave: number | null;
-  distanceToSurface: number | null;
-  cursorPosition: any;
-  cursorBlockName: string;
-  biomeName: string | null;
+  playerPosition?: { x: number; y: number; z: number } | null;
+  playerBlockName?: string | null;
+  distanceToCave?: number | null;
+  distanceToSurface?: number | null;
+  cursorPosition?: { x: number; y: number; z: number } | null;
+  cursorBlockName?: string | null;
+  biomeName?: string | null;
   dustClient?: any;
+  playerEnergy: PlayerEnergyData | null;
+  onTogglePanel?: (panelName: 'ore' | 'forcefield' | 'energy' | 'holdings') => void;
+  panelVisibility?: { ore: boolean; forcefield: boolean; energy: boolean; holdings: boolean };
 }
 
 export function Toolbar({ 
@@ -21,7 +27,10 @@ export function Toolbar({
   cursorPosition, 
   cursorBlockName, 
   biomeName,
-  dustClient
+  dustClient,
+  playerEnergy,
+  onTogglePanel,
+  panelVisibility
 }: ToolbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [visibleStats, setVisibleStats] = useState({
@@ -32,6 +41,7 @@ export function Toolbar({
     cursor: true,
     pointingAt: true,
     biome: true,
+    energy: true,
   });
 
   const toggleStat = (statKey: keyof typeof visibleStats) => {
@@ -103,7 +113,7 @@ export function Toolbar({
             fontWeight: 600,
             textShadow: '0 1px 2px #222',
           }}>
-            DUST OS v1.2 - The Lorax
+            DUST OS v1.3 - The Lorax
           </div>
           
           {/* Stats Menu Button */}
@@ -170,13 +180,14 @@ export function Toolbar({
             cursor: 'Cursor',
             pointingAt: 'Pointing at',
             biome: 'Biome',
+            energy: 'Energy',
           }).map(([key, label]) => (
             <div key={key} style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              padding: '4px 8px',
               marginBottom: '6px',
-              padding: '4px 0',
             }}>
               <span style={{
                 color: '#fff',
@@ -222,6 +233,80 @@ export function Toolbar({
               </button>
             </div>
           ))}
+          
+          {/* Panel Controls */}
+          <div style={{
+            borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+            marginTop: '8px',
+            paddingTop: '8px',
+          }}>
+            <div style={{
+              color: '#fff',
+              fontSize: 11,
+              fontFamily: 'monospace',
+              marginBottom: '6px',
+              opacity: 0.8,
+            }}>
+              Panels
+            </div>
+            {Object.entries({
+              ore: 'Ore Distribution',
+              forcefield: 'Forcefield',
+              energy: 'Energy Stats',
+              holdings: 'Holdings',
+            }).map(([key, label]) => (
+                             <div key={key} style={{
+                 display: 'flex',
+                 alignItems: 'center',
+                 justifyContent: 'space-between',
+                 padding: '4px 8px',
+                 marginBottom: '6px',
+               }}>
+                <span style={{
+                  color: '#fff',
+                  fontSize: 12,
+                  fontFamily: 'monospace',
+                }}>
+                  {label}
+                </span>
+                <button
+                  onClick={() => onTogglePanel?.(key as 'ore' | 'forcefield')}
+                  style={{
+                    background: panelVisibility?.[key as keyof typeof panelVisibility] 
+                      ? 'rgba(174, 255, 208, 0.3)' 
+                      : 'rgba(255, 100, 100, 0.3)',
+                    border: `1px solid ${panelVisibility?.[key as keyof typeof panelVisibility] 
+                      ? 'rgb(174, 255, 208)' 
+                      : 'rgb(255, 100, 100)'}`,
+                    color: panelVisibility?.[key as keyof typeof panelVisibility] 
+                      ? 'rgb(174, 255, 208)' 
+                      : 'rgb(255, 100, 100)',
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '2px',
+                    fontSize: '10px',
+                    fontFamily: 'monospace',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = panelVisibility?.[key as keyof typeof panelVisibility]
+                      ? 'rgba(174, 255, 208, 0.4)'
+                      : 'rgba(255, 100, 100, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = panelVisibility?.[key as keyof typeof panelVisibility]
+                      ? 'rgba(174, 255, 208, 0.3)'
+                      : 'rgba(255, 100, 100, 0.3)';
+                  }}
+                >
+                  {panelVisibility?.[key as keyof typeof panelVisibility] ? '👁️' : '🚫'}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -257,6 +342,12 @@ export function Toolbar({
             )}
             {visibleStats.biome && (
               <ToolbarItem title="Biome:" value={biomeName || "Loading..."} />
+            )}
+            {visibleStats.energy && (
+              <ToolbarItem 
+                title="Energy:"
+                value={`${playerEnergy ? `${playerEnergy.energyPercentage.toFixed(1)}% | ${playerEnergy.formattedEnergy}` : "Loading..."}`}
+              />
             )}
           </>
         ) : (

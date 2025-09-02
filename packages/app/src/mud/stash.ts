@@ -20,7 +20,6 @@ const selectedProgramTables = {
     dustProgramsConfig.tables.dfprograms_1__AccessGroupOwner,
 };
 
-
 export const tables = {
   ...selectedDustTables,
   ...selectedProgramTables,

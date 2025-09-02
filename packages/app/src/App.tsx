@@ -3,10 +3,12 @@ import { useSyncStatus } from "./mud/useSyncStatus";
 import { usePlayerPositionQuery } from "./common/usePlayerPositionQuery";
 import { useDustClient } from "./common/useDustClient";
 import { useCursorPositionQuery } from "./common/useCursorPositionQuery";
-import { useBiomeInfo, useBlockAnalysis, useCursorStats, useForcefieldData } from "./hooks";
-import { Toolbar, OreDistribution, ForcefieldPanel } from "./components";
+import { useBiomeInfo, useBlockAnalysis, useCursorStats, useForcefieldData, usePlayerEnergy } from "./hooks";
+import { Toolbar, OreDistribution, ForcefieldPanel, EnergyPanel, HoldingsPanel } from "./components";
 import { LAYOUT_CONFIG } from "./config/layout";
 import { objectsById } from "@dust/world/internal";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function App() {
   const { data: dustClient } = useDustClient();
@@ -14,6 +16,50 @@ export default function App() {
   const playerStatus = usePlayerStatus();
   const playerPosition = usePlayerPositionQuery();
   const cursorPosition = useCursorPositionQuery();
+  const queryClient = useQueryClient();
+
+  // Panel visibility state
+  const [panelVisibility, setPanelVisibility] = useState({
+    ore: true,
+    forcefield: true,
+    energy: true,
+    holdings: true
+  });
+
+  const togglePanel = (panelName: 'ore' | 'forcefield' | 'energy' | 'holdings') => {
+    setPanelVisibility(prev => ({
+      ...prev,
+      [panelName]: !prev[panelName]
+    }));
+  };
+
+  // Invalidate cache on app load to ensure fresh data
+  useEffect(() => {
+    // Small delay to ensure invalidation happens after initial render
+    setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ["dust-client"] });
+      queryClient.invalidateQueries({ queryKey: ["player-entity-id"] });
+      
+      // Also refetch immediately after invalidation
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ["dust-client"] });
+        queryClient.refetchQueries({ queryKey: ["player-entity-id"] });
+      }, 100);
+    }, 100);
+  }, [queryClient]);
+
+  // Refetch queries when app becomes visible (e.g., on page reload)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        queryClient.refetchQueries({ queryKey: ["dust-client"] });
+        queryClient.refetchQueries({ queryKey: ["player-entity-id"] });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [queryClient]);
 
   // Use custom hooks for better organization and performance
   const { playerBlockType, distanceToCave, distanceToSurface } = useBlockAnalysis(playerPosition);
@@ -25,6 +71,7 @@ export default function App() {
     playerPosition.data?.z
   );
   const forcefieldData = useForcefieldData(playerPosition);
+  const playerEnergy = usePlayerEnergy();
 
   // All hooks are now working properly
 
@@ -48,7 +95,7 @@ export default function App() {
     return (
       <div className="flex flex-col h-screen items-center justify-center">
         <p className="text-center bg-white px-2 py-1 rounded shadow">
-        <span className="block">DUST OS v1.2 - Loading... {syncStatus.percentage.toFixed(2)}%</span>
+        <span className="block">DUST OS v1.3 - Loading... {syncStatus.percentage.toFixed(2)}%</span>
         <span className="block">Align window to top right corner for optimal experience</span>
           </p>
       </div>
@@ -107,6 +154,9 @@ export default function App() {
             cursorBlockName={cursorBlockType != null ? (objectsById as any)[cursorBlockType]?.name ?? "Unknown" : "Unknown"}
             biomeName={biomeName}
             dustClient={dustClient}
+            playerEnergy={playerEnergy}
+            onTogglePanel={togglePanel}
+            panelVisibility={panelVisibility}
           />
         </div>
         
@@ -181,36 +231,12 @@ export default function App() {
         }}>
         </div>
         
-        {/* Bottom Left - Debug Panel */}
+        {/* Bottom Left - Ore Distribution */}
+        {/* Bottom Right - Ore Distribution + Forcefield Panel */}
         <div style={{
-          background: 'transparent',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#00ffff',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          padding: '0',
-        }}>
-        </div>
-        
-        {/* Bottom Center - Debug Panel */}
-        <div style={{
-          background: 'transparent',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#808080',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          padding: '0',
-        }}>
-        </div>
-        
-        {/* Bottom Right - Ore Multipliers + Forcefield Panel */}
-        <div style={{
+          gridColumn: '3',
+          gridRow: '3',
+          justifySelf: 'start',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
@@ -218,19 +244,35 @@ export default function App() {
           background: 'transparent',
           padding: '0',
         }}>
-          <div style={{
-            color: '#800080',
-            fontSize: '12px',
-            fontFamily: 'monospace',
-            textAlign: 'center',
-            marginBottom: '10px',
-          }}>
-          </div>
-          <OreDistribution oreMultipliers={oreMultipliers} />
-          <ForcefieldPanel 
-            forcefieldData={forcefieldData}
-            isInsideForcefield={forcefieldData !== null}
-          />
+          {/* Ore Distribution Panel */}
+          {panelVisibility.ore && (
+            <OreDistribution 
+              oreMultipliers={oreMultipliers}
+            />
+          )}
+          
+          {/* Forcefield Panel */}
+          {panelVisibility.forcefield && (
+            <ForcefieldPanel 
+              forcefieldData={forcefieldData}
+              isInsideForcefield={forcefieldData !== null}
+            />
+          )}
+
+          {/* Energy Panel */}
+          {panelVisibility.energy && playerEnergy && (
+            <EnergyPanel 
+              currentEnergy={playerEnergy.currentEnergy}
+              energyCosts={playerEnergy.energyCosts}
+            />
+          )}
+
+          {/* Holdings Panel */}
+          {panelVisibility.holdings && (
+            <HoldingsPanel 
+              
+            />
+          )}
         </div>
       </div>
     </div>

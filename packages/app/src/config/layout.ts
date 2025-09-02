@@ -5,14 +5,14 @@ export const LAYOUT_CONFIG = {
   
   // Overall container dimensions
   CONTAINER: {
-    WIDTH: '1400px',
-    HEIGHT: '800px',
+    WIDTH: '1700px',
+    HEIGHT: '900px',
   },
   
   // Grid layout
   GRID: {
-    COLUMNS: '1170px 30px 1fr',
-    ROWS: '110px 40px 1fr',
+    COLUMNS: '1470px 30px 1fr',
+    ROWS: '110px 50px 1fr',
   },
 
   // UI Alignment (easily adjustable)

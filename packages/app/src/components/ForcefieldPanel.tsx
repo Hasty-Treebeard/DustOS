@@ -111,7 +111,7 @@ export function ForcefieldPanel({ forcefieldData, isInsideForcefield }: Forcefie
       borderRadius: '0',
       zIndex: 999,
       width: '200px',
-      minHeight: isExpanded ? '200px' : '60px',
+      minHeight: isExpanded ? '220px' : '60px',
       position: 'relative',
     }}>
       {/* Expand/Collapse Button */}
@@ -178,6 +178,16 @@ export function ForcefieldPanel({ forcefieldData, isInsideForcefield }: Forcefie
           </div>
           <div style={{ margin: '3px 0', color: '#fff', fontSize: 14, width: '100%' }}>
             <span style={{ textDecoration: 'underline', textUnderlineOffset: '2px' }}>Days Remaining:</span> {forcefieldData.daysRemaining}
+          </div>
+          <div style={{ margin: '3px 0', color: '#fff', fontSize: 14, width: '100%' }}>
+            <span style={{ textDecoration: 'underline', textUnderlineOffset: '2px' }}>Iron to KO:</span> {(() => {
+              // Calculate iron needed based on: 6 Iron = 3678.66 energy
+              // Formula: (current energy / 3678.66) * 6
+              const energyValue = parseFloat(forcefieldData.energy.replace(/[^\d.-]/g, ''));
+              if (isNaN(energyValue)) return 'Unknown';
+              const ironNeeded = (energyValue / 3678.66) * 6;
+              return Math.round(ironNeeded);
+            })()}
           </div>
         </>
       )}
