@@ -8,11 +8,6 @@ import { encodePlayer } from "@dust/world/internal";
 export function usePlayerStatus(): "alive" | "dead" {
   const { data: playerWalletAddress, isLoading: isWalletLoading } = usePlayerEntityId();
 
-  // Don't proceed if wallet is still loading or not available
-  if (isWalletLoading || !playerWalletAddress) {
-    return "dead"; // Default to dead while loading
-  }
-
   // Convert wallet address to player entity ID using encodePlayer
   const playerEntityId = useMemo(() => {
     if (!playerWalletAddress) return null;
@@ -39,6 +34,11 @@ export function usePlayerStatus(): "alive" | "dead" {
     const energyDrained = elapsed * energy.drainRate;
     return bigIntMax(0n, energy.energy - energyDrained);
   }, [energy]);
+
+  // Don't proceed if wallet is still loading or not available
+  if (isWalletLoading || !playerWalletAddress) {
+    return "dead"; // Default to dead while loading
+  }
 
   return optimisticEnergy ? "alive" : "dead";
 }

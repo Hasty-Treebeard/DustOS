@@ -6,6 +6,12 @@ export function usePlayerEntityId() {
 
   return useQuery({
     queryKey: ["player-entity-id"],
-    queryFn: () => dustClient?.appContext.userAddress,
+    queryFn: () => {
+      if (!dustClient) {
+        throw new Error("Dust client not available");
+      }
+      return dustClient.appContext.userAddress;
+    },
+    enabled: !!dustClient,
   });
 }

@@ -40,12 +40,6 @@ export function usePlayerEnergy(): PlayerEnergyData | null {
   const ORE_TOOL_BASE_MULTIPLIER = 3n; // 3x base effectiveness
   const SPECIALIZATION_MULTIPLIER = 3n; // 3x bonus for using the right tool
 
-
-  // Don't proceed if wallet is still loading or not available
-  if (isWalletLoading || !playerWalletAddress) {
-    return null;
-  }
-
   // Convert wallet address to player entity ID using EntityTypeLib.encodePlayer
   const playerEntityId = useMemo(() => {
     if (!playerWalletAddress) return null;
@@ -71,7 +65,7 @@ export function usePlayerEnergy(): PlayerEnergyData | null {
     }
   );
 
-  return useMemo(() => {
+  const result = useMemo(() => {
     // Don't return data if stash or tables aren't available yet
     if (!stash || !tables.Energy) {
       return null;
@@ -148,4 +142,11 @@ export function usePlayerEnergy(): PlayerEnergyData | null {
       },
     };
   }, [energy, playerEntityId]);
+
+  // Don't proceed if wallet is still loading or not available
+  if (isWalletLoading || !playerWalletAddress) {
+    return null;
+  }
+
+  return result;
 }

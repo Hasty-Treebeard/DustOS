@@ -35,13 +35,17 @@ export default function App() {
 
   // Invalidate cache on app load to ensure fresh data
   useEffect(() => {
+    console.log("App loaded, invalidating React Query cache...");
+    
     // Small delay to ensure invalidation happens after initial render
     setTimeout(() => {
+      console.log("Executing delayed cache invalidation...");
       queryClient.invalidateQueries({ queryKey: ["dust-client"] });
       queryClient.invalidateQueries({ queryKey: ["player-entity-id"] });
       
       // Also refetch immediately after invalidation
       setTimeout(() => {
+        console.log("Refetching after invalidation...");
         queryClient.refetchQueries({ queryKey: ["dust-client"] });
         queryClient.refetchQueries({ queryKey: ["player-entity-id"] });
       }, 100);
@@ -52,6 +56,7 @@ export default function App() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
+        console.log("App became visible, refetching queries...");
         queryClient.refetchQueries({ queryKey: ["dust-client"] });
         queryClient.refetchQueries({ queryKey: ["player-entity-id"] });
       }
@@ -93,7 +98,7 @@ export default function App() {
 
   if (!syncStatus.isLive || !playerStatus) {
     return (
-      <div className="flex flex-col h-screen items-center justify-center">
+      <div className="flex flex-col h-screen items-center justify-start pt-4">
         <p className="text-center bg-white px-2 py-1 rounded shadow">
         <span className="block">DUST OS v1.3 - Loading... {syncStatus.percentage.toFixed(2)}%</span>
         <span className="block">Align window to top right corner for optimal experience</span>
@@ -131,7 +136,6 @@ export default function App() {
         gap: '0',
         background: 'transparent',
         borderCollapse: 'collapse',
-        outline: '1px solid red',
         justifyItems: 'end', // Align grid items to the right
         gridColumn: '1', // Ensure toolbar spans the left column
       }}>
