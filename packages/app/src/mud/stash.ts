@@ -11,6 +11,7 @@ const selectedDustTables = {
   EntityObjectType: dustWorldConfig.tables.EntityObjectType,
   Fragment: dustWorldConfig.tables.Fragment,
   Machine: dustWorldConfig.tables.Machine,
+  InventorySlot: dustWorldConfig.tables.InventorySlot,
 };
 
 const selectedProgramTables = {

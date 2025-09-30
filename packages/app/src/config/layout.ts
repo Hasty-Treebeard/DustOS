@@ -5,15 +5,10 @@ export const LAYOUT_CONFIG = {
   
   // Overall container dimensions
   CONTAINER: {
-    WIDTH: '1700px',
-    HEIGHT: '900px',
+    WIDTH: '1500px',
+    HEIGHT: '800px',
   },
   
-  // Grid layout
-  GRID: {
-    COLUMNS: '1470px 30px 1fr',
-    ROWS: '110px 50px 1fr',
-  },
 
   // UI Alignment (easily adjustable)
   ALIGNMENT: {
@@ -21,6 +16,15 @@ export const LAYOUT_CONFIG = {
     VERTICAL: 'flex-start',    // 'flex-start' = top, 'center' = center, 'flex-end' = bottom
     POSITION: 'relative',         // 'fixed' = stays in place, 'relative' = scrolls with page
   },
+
+  // UI Scale Configuration
+  SCALE: {
+    LARGE: 1.0,    // Full size
+    SMALL: 0.85,    // 80% size (20% reduction)
+  },
 } as const;
 
-// Helper function to get CSS custom properties
+// Helper function to get scale factor from percentage
+export const getScaleFactorFromPercent = (percent: number): number => {
+  return percent / 100;
+};

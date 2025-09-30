@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ToolbarItem } from './ToolbarItem';
 import { AccountName } from '../common/AccountName';
 import type { PlayerEnergyData } from '../hooks/usePlayerEnergy';
+import { getScaleFactorFromPercent } from '../config/layout';
 
 
 
@@ -15,8 +16,13 @@ interface ToolbarProps {
   biomeName?: string | null;
   dustClient?: any;
   playerEnergy: PlayerEnergyData | null;
-  onTogglePanel?: (panelName: 'ore' | 'forcefield' | 'energy' | 'holdings') => void;
-  panelVisibility?: { ore: boolean; forcefield: boolean; energy: boolean; holdings: boolean };
+  onTogglePanel?: (panelName: 'ore' | 'forcefield' | 'energy' | 'holdings' | 'cursor') => void;
+  panelVisibility?: { ore: boolean; forcefield: boolean; energy: boolean; holdings: boolean; cursor: boolean };
+  uiSizePercent?: number;
+  onIncrementUiSize?: () => void;
+  onDecrementUiSize?: () => void;
+  position?: { x: number; y: number };
+  onPositionChange?: (x: number, y: number) => void;
 }
 
 export function Toolbar({ 
@@ -30,7 +36,12 @@ export function Toolbar({
   dustClient,
   playerEnergy,
   onTogglePanel,
-  panelVisibility
+  panelVisibility,
+  uiSizePercent = 100,
+  onIncrementUiSize,
+  onDecrementUiSize,
+  position = { x: 0, y: 0 },
+  onPositionChange
 }: ToolbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [visibleStats, setVisibleStats] = useState({
@@ -43,6 +54,46 @@ export function Toolbar({
     biome: true,
     energy: true,
   });
+
+  // Calculate scale factor based on UI size percentage
+  const scale = getScaleFactorFromPercent(uiSizePercent);
+
+  // Draggable functionality
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) return; // Only drag on the grabber
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !onPositionChange) return;
+    // Calculate position relative to the viewport
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+    onPositionChange(newX, newY);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset, onPositionChange]);
 
   const toggleStat = (statKey: keyof typeof visibleStats) => {
     setVisibleStats(prev => ({
@@ -68,36 +119,55 @@ export function Toolbar({
       borderRadius: '0',
       zIndex: 1000,
       height: 'fit-content',
-      minHeight: '110px',
-      position: 'relative',
+      minHeight: `${110 * scale}px`,
+      position: 'fixed',
       width: 'fit-content', // Allow toolbar to shrink to content
-      alignSelf: 'flex-end', // Ensure toolbar aligns to the right
-      marginLeft: 'auto', // Push toolbar to the right side
+      left: `${position.x}px`,
+      top: `${position.y}px`,
+      zoom: scale,
+      cursor: isDragging ? 'grabbing' : 'default',
     }}>
       {/* Title Bar Row */}
-      <div style={{
-        height: '24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        fontFamily: 'Press Start 2P, monospace',
-        fontSize: 18,
-        color: '#eee',
-        background: '#000',
-        paddingLeft: '16px',
-        paddingRight: '16px',
-        boxSizing: 'border-box',
-        letterSpacing: '1px',
-        textShadow: '0 1px 2px #013220',
-      }}>
-        <div>
-          {playerPosition && dustClient?.appContext?.userAddress ? (
-            <AccountName address={dustClient.appContext.userAddress} />
-          ) : (
-            <span style={{ fontFamily: 'Fira Mono, Menlo, Monaco, Consolas, monospace', fontSize: 16, color: '#eee' }}>
-              Connecting...
-            </span>
-          )}
+      <div 
+        onMouseDown={handleMouseDown}
+        style={{
+          height: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontFamily: 'Press Start 2P, monospace',
+          fontSize: 18,
+          color: '#eee',
+          background: '#000',
+          paddingLeft: '16px',
+          paddingRight: '16px',
+          boxSizing: 'border-box',
+          letterSpacing: '1px',
+          textShadow: '0 1px 2px #013220',
+          cursor: 'grab',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Grabber Icon */}
+          <div
+            style={{
+              fontSize: '12px',
+              color: 'rgb(174, 255, 208)',
+              userSelect: 'none',
+              padding: '2px',
+            }}
+          >
+            📍
+          </div>
+          <div>
+            {playerPosition && dustClient?.appContext?.userAddress ? (
+              <AccountName address={dustClient.appContext.userAddress} />
+            ) : (
+              <span style={{ fontFamily: 'Fira Mono, Menlo, Monaco, Consolas, monospace', fontSize: 16, color: '#eee' }}>
+                Connecting...
+              </span>
+            )}
+          </div>
         </div>
         <div style={{
           display: 'flex',
@@ -119,6 +189,7 @@ export function Toolbar({
           {/* Stats Menu Button */}
           <button
             onClick={toggleMenu}
+            onMouseDown={(e) => e.stopPropagation()}
             style={{
               background: 'rgba(174, 255, 208, 0.2)',
               border: '1px solid rgb(174, 255, 208)',
@@ -254,6 +325,7 @@ export function Toolbar({
               forcefield: 'Forcefield',
               energy: 'Energy Stats',
               holdings: 'Holdings',
+              cursor: 'Cursor Overlay',
             }).map(([key, label]) => (
                              <div key={key} style={{
                  display: 'flex',
@@ -270,7 +342,7 @@ export function Toolbar({
                   {label}
                 </span>
                 <button
-                  onClick={() => onTogglePanel?.(key as 'ore' | 'forcefield')}
+                  onClick={() => onTogglePanel?.(key as 'ore' | 'forcefield' | 'energy' | 'holdings' | 'cursor')}
                   style={{
                     background: panelVisibility?.[key as keyof typeof panelVisibility] 
                       ? 'rgba(174, 255, 208, 0.3)' 
@@ -306,6 +378,100 @@ export function Toolbar({
                 </button>
               </div>
             ))}
+          </div>
+
+          {/* UI Size Controls */}
+          <div style={{
+            borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+            marginTop: '8px',
+            paddingTop: '8px',
+          }}>
+            <div style={{
+              color: '#fff',
+              fontSize: 11,
+              fontFamily: 'monospace',
+              marginBottom: '6px',
+              opacity: 0.8,
+            }}>
+              Size
+            </div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '4px 8px',
+              marginBottom: '6px',
+            }}>
+              <button
+                onClick={onDecrementUiSize}
+                disabled={uiSizePercent <= 50}
+                style={{
+                  background: uiSizePercent <= 50 ? 'rgba(100, 100, 100, 0.3)' : 'rgba(255, 100, 100, 0.3)',
+                  border: `1px solid ${uiSizePercent <= 50 ? 'rgb(100, 100, 100)' : 'rgb(255, 100, 100)'}`,
+                  color: uiSizePercent <= 50 ? 'rgb(100, 100, 100)' : 'rgb(255, 100, 100)',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '2px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  cursor: uiSizePercent <= 50 ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onMouseEnter={(e) => {
+                  if (uiSizePercent > 50) {
+                    e.currentTarget.style.background = 'rgba(255, 100, 100, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (uiSizePercent > 50) {
+                    e.currentTarget.style.background = 'rgba(255, 100, 100, 0.3)';
+                  }
+                }}
+              >
+                -
+              </button>
+              <span style={{
+                color: '#fff',
+                fontSize: 12,
+                fontFamily: 'monospace',
+                minWidth: '40px',
+                textAlign: 'center',
+              }}>
+                {uiSizePercent}%
+              </span>
+              <button
+                onClick={onIncrementUiSize}
+                disabled={uiSizePercent >= 150}
+                style={{
+                  background: uiSizePercent >= 150 ? 'rgba(100, 100, 100, 0.3)' : 'rgba(174, 255, 208, 0.3)',
+                  border: `1px solid ${uiSizePercent >= 150 ? 'rgb(100, 100, 100)' : 'rgb(174, 255, 208)'}`,
+                  color: uiSizePercent >= 150 ? 'rgb(100, 100, 100)' : 'rgb(174, 255, 208)',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '2px',
+                  fontSize: '12px',
+                  fontFamily: 'monospace',
+                  cursor: uiSizePercent >= 150 ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onMouseEnter={(e) => {
+                  if (uiSizePercent < 150) {
+                    e.currentTarget.style.background = 'rgba(174, 255, 208, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (uiSizePercent < 150) {
+                    e.currentTarget.style.background = 'rgba(174, 255, 208, 0.3)';
+                  }
+                }}
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
       )}

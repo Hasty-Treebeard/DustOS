@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getScaleFactorFromPercent } from '../config/layout';
 
 interface ForcefieldData {
   owner: string;              // Owner of the forcefield
@@ -12,14 +13,56 @@ interface ForcefieldData {
 interface ForcefieldPanelProps {
   forcefieldData: ForcefieldData | null;
   isInsideForcefield: boolean;
+  uiSizePercent?: number;
+  position?: { x: number; y: number };
+  onPositionChange?: (x: number, y: number) => void;
 }
 
-export function ForcefieldPanel({ forcefieldData, isInsideForcefield }: ForcefieldPanelProps) {
+export function ForcefieldPanel({ forcefieldData, isInsideForcefield, uiSizePercent = 100, position = { x: 0, y: 0 }, onPositionChange }: ForcefieldPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
+
+  // Calculate scale factor based on UI size percentage
+  const scale = getScaleFactorFromPercent(uiSizePercent);
+
+  // Draggable functionality
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !onPositionChange) return;
+    // Calculate position relative to the viewport
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+    onPositionChange(newX, newY);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset, onPositionChange]);
 
   if (!isInsideForcefield || !forcefieldData) {
     return (
@@ -37,8 +80,30 @@ export function ForcefieldPanel({ forcefieldData, isInsideForcefield }: Forcefie
         zIndex: 999,
         width: '200px',
         height: isExpanded ? '120px' : '60px',
-        position: 'relative',
+        position: 'fixed',
+        left: `${position.x}px`,
+        top: `${position.y}px`,
+        zoom: scale,
+        cursor: isDragging ? 'grabbing' : 'default',
       }}>
+        {/* Grabber Icon */}
+        <div
+          onMouseDown={handleMouseDown}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '40px',
+            cursor: 'grab',
+            fontSize: '12px',
+            color: 'rgb(174, 255, 208)',
+            userSelect: 'none',
+            padding: '2px',
+            zIndex: 1000,
+          }}
+        >
+          📌
+        </div>
+
         {/* Expand/Collapse Button */}
         <button
           onClick={toggleExpanded}
@@ -97,23 +162,45 @@ export function ForcefieldPanel({ forcefieldData, isInsideForcefield }: Forcefie
     );
   }
 
-  return (
-    <div style={{
-      background: 'rgba(6, 51, 19, 0.7)',
-      padding: '20px 30px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'flex-start',
-      justifyContent: 'flex-start',
-      boxShadow: '0 2.7px 10.8px 0 rgba(56,161,105,0.18)',
-      fontFamily: 'Press Start 2P, monospace',
-      imageRendering: 'pixelated',
-      borderRadius: '0',
-      zIndex: 999,
-      width: '200px',
-      minHeight: isExpanded ? '220px' : '60px',
-      position: 'relative',
-    }}>
+          return (
+          <div style={{
+            background: 'rgba(6, 51, 19, 0.7)',
+            padding: '20px 30px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            justifyContent: 'flex-start',
+            boxShadow: '0 2.7px 10.8px 0 rgba(56,161,105,0.18)',
+            fontFamily: 'Press Start 2P, monospace',
+            imageRendering: 'pixelated',
+            borderRadius: '0',
+            zIndex: 999,
+            width: '200px',
+            minHeight: isExpanded ? '314px' : '60px',
+            position: 'fixed',
+            left: `${position.x}px`,
+            top: `${position.y}px`,
+            zoom: scale,
+            cursor: isDragging ? 'grabbing' : 'default',
+          }}>
+      {/* Grabber Icon */}
+      <div
+        onMouseDown={handleMouseDown}
+        style={{
+          position: 'absolute',
+          top: '4px',
+          left: '4px',
+          cursor: 'grab',
+          fontSize: '12px',
+          color: 'rgb(174, 255, 208)',
+          userSelect: 'none',
+          padding: '2px',
+          zIndex: 1000,
+        }}
+      >
+        📍
+      </div>
+
       {/* Expand/Collapse Button */}
       <button
         onClick={toggleExpanded}

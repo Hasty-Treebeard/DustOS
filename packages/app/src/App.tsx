@@ -3,8 +3,8 @@ import { useSyncStatus } from "./mud/useSyncStatus";
 import { usePlayerPositionQuery } from "./common/usePlayerPositionQuery";
 import { useDustClient } from "./common/useDustClient";
 import { useCursorPositionQuery } from "./common/useCursorPositionQuery";
-import { useBiomeInfo, useBlockAnalysis, useCursorStats, useForcefieldData, usePlayerEnergy } from "./hooks";
-import { Toolbar, OreDistribution, ForcefieldPanel, EnergyPanel, HoldingsPanel } from "./components";
+import { useBiomeInfo, useBlockAnalysis, useBlockMass, useCursorStats, useForcefieldData, usePlayerEnergy } from "./hooks";
+import { Toolbar, OreDistribution, ForcefieldPanel, EnergyPanel, HoldingsPanel, CursorPanel } from "./components";
 import { LAYOUT_CONFIG } from "./config/layout";
 import { objectsById } from "@dust/world/internal";
 import { useEffect, useState } from "react";
@@ -18,18 +18,56 @@ export default function App() {
   const cursorPosition = useCursorPositionQuery();
   const queryClient = useQueryClient();
 
+  
   // Panel visibility state
   const [panelVisibility, setPanelVisibility] = useState({
     ore: true,
     forcefield: true,
     energy: true,
-    holdings: true
+    holdings: true,
+    cursor: true,
   });
 
-  const togglePanel = (panelName: 'ore' | 'forcefield' | 'energy' | 'holdings') => {
+  // UI size state (percentage from 50% to 150%)
+  const [uiSizePercent, setUiSizePercent] = useState<number>(100);
+
+  // Draggable positions state
+  const [positions, setPositions] = useState({
+    toolbar: { x: 10, y: 10 }, // Top left
+    ore: { x: 10, y: 130 }, // Below toolbar, left
+    forcefield: { x: 220, y: 130 }, // Below toolbar, second from left
+    energy: { x: 430, y: 130 }, // Below toolbar, third from left
+    holdings: { x: 640, y: 130 }, // Below toolbar, fourth from left
+    cursor: { x: 850, y: 130 }, // Below toolbar, rightmost
+  });
+
+    // Calculate scaled gap for panels
+  const scale = uiSizePercent / 100;
+  const scaledGap = `${10 * scale}px`;
+
+  // Calculate scaled container dimensions
+  const scaledContainerWidth = `${1500 * scale}px`;
+  const scaledContainerHeight = `${800 * scale}px`;
+
+  const togglePanel = (panelName: 'ore' | 'forcefield' | 'energy' | 'holdings' | 'cursor') => {
     setPanelVisibility(prev => ({
       ...prev,
       [panelName]: !prev[panelName]
+    }));
+  };
+
+  const incrementUiSize = () => {
+    setUiSizePercent(prev => Math.min(150, prev + 5));
+  };
+
+  const decrementUiSize = () => {
+    setUiSizePercent(prev => Math.max(50, prev - 5));
+  };
+
+  const updatePosition = (component: keyof typeof positions, x: number, y: number) => {
+    setPositions(prev => ({
+      ...prev,
+      [component]: { x, y }
     }));
   };
 
@@ -77,6 +115,7 @@ export default function App() {
   );
   const forcefieldData = useForcefieldData(playerPosition);
   const playerEnergy = usePlayerEnergy();
+  const blockMassData = useBlockMass(cursorBlockType);
 
   // All hooks are now working properly
 
@@ -126,132 +165,56 @@ export default function App() {
       top: 0,
       right: 0,
     }}>
-      {/* 3x3 Grid Layout with Adjustable Center Panel */}
-      <div style={{
-        width: LAYOUT_CONFIG.CONTAINER.WIDTH,
-        height: LAYOUT_CONFIG.CONTAINER.HEIGHT,
-        display: 'grid',
-        gridTemplateColumns: LAYOUT_CONFIG.GRID.COLUMNS,
-        gridTemplateRows: LAYOUT_CONFIG.GRID.ROWS,
-        gap: '0',
+      {/* Main Container */}
+            <div style={{
+        width: scaledContainerWidth,
+        height: scaledContainerHeight,
+        position: 'relative',
         background: 'transparent',
-        borderCollapse: 'collapse',
-        justifyItems: 'end', // Align grid items to the right
-        gridColumn: '1', // Ensure toolbar spans the left column
+        overflow: 'visible',
       }}>
         
-        {/* Top Left - Toolbar */}
-        <div style={{
-          gridColumn: '1',
-          gridRow: '1',
-          justifySelf: 'end', // Align toolbar to the right side of its grid cell
-          width: 'fit-content', // Allow toolbar to shrink to content
-          display: 'flex',
-          justifyContent: 'flex-end', // Ensure content aligns to the right
-        }}>
-          <Toolbar 
-            playerPosition={playerPosition.data}
-            playerBlockName={playerBlockType != null ? (objectsById as any)[playerBlockType]?.name ?? "Unknown" : "Unknown"}
-            distanceToCave={distanceToCave}
-            distanceToSurface={distanceToSurface}
-            cursorPosition={cursorPosition.data}
-            cursorBlockName={cursorBlockType != null ? (objectsById as any)[cursorBlockType]?.name ?? "Unknown" : "Unknown"}
-            biomeName={biomeName}
-            dustClient={dustClient}
-            playerEnergy={playerEnergy}
-            onTogglePanel={togglePanel}
-            panelVisibility={panelVisibility}
-          />
-        </div>
+        {/* Toolbar */}
+        <Toolbar 
+          playerPosition={playerPosition.data}
+          playerBlockName={playerBlockType != null ? (objectsById as any)[playerBlockType]?.name ?? "Unknown" : "Unknown"}
+          distanceToCave={distanceToCave}
+          distanceToSurface={distanceToSurface}
+          cursorPosition={cursorPosition.data}
+          cursorBlockName={cursorBlockType != null ? (objectsById as any)[cursorBlockType]?.name ?? "Unknown" : "Unknown"}
+          biomeName={biomeName}
+          dustClient={dustClient}
+          playerEnergy={playerEnergy}
+          onTogglePanel={togglePanel}
+          panelVisibility={panelVisibility}
+          uiSizePercent={uiSizePercent}
+          onIncrementUiSize={incrementUiSize}
+          onDecrementUiSize={decrementUiSize}
+          position={positions.toolbar}
+          onPositionChange={(x, y) => updatePosition('toolbar', x, y)}
+        />
         
-        {/* Top Center - Debug Panel */}
+        {/* Panels */}
         <div style={{
-          background: 'transparent',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#ff0000',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          padding: '0',
-        }}>
-        </div>
-        
-        {/* Top Right - Debug Panel */}
-        <div style={{
-          background: 'transparent',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#00ff00',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          padding: '0',
-        }}>
-        </div>
-        
-        {/* Middle Left - Debug Panel */}
-        <div style={{
-          background: 'transparent',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#0000ff',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          padding: '0',
-        }}>
-        </div>
-        
-        {/* Middle Center - Debug Panel (Adjustable Size) */}
-        <div style={{
-          background: 'transparent',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#000000',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          padding: '0',
-          margin: '0',
-        }}>
-        </div>
-        
-        {/* Middle Right - Debug Panel */}
-        <div style={{
-          background: 'transparent',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: '#ff00ff',
-          fontSize: '12px',
-          fontFamily: 'monospace',
-          padding: '0',
-        }}>
-        </div>
-        
-        {/* Bottom Left - Ore Distribution */}
-        {/* Bottom Right - Ore Distribution + Forcefield Panel */}
-        <div style={{
-          gridColumn: '3',
-          gridRow: '3',
-          justifySelf: 'start',
+          position: 'absolute',
+          top: '120px',
+          right: '10px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'flex-start',
-          gap: '10px',
+          gap: scaledGap,
           background: 'transparent',
           padding: '0',
+          minHeight: 'fit-content',
+          overflow: 'visible',
         }}>
           {/* Ore Distribution Panel */}
           {panelVisibility.ore && (
             <OreDistribution 
               oreMultipliers={oreMultipliers}
+              uiSizePercent={uiSizePercent}
+              position={positions.ore}
+              onPositionChange={(x, y) => updatePosition('ore', x, y)}
             />
           )}
           
@@ -260,6 +223,9 @@ export default function App() {
             <ForcefieldPanel 
               forcefieldData={forcefieldData}
               isInsideForcefield={forcefieldData !== null}
+              uiSizePercent={uiSizePercent}
+              position={positions.forcefield}
+              onPositionChange={(x, y) => updatePosition('forcefield', x, y)}
             />
           )}
 
@@ -268,13 +234,29 @@ export default function App() {
             <EnergyPanel 
               currentEnergy={playerEnergy.currentEnergy}
               energyCosts={playerEnergy.energyCosts}
+              uiSizePercent={uiSizePercent}
+              position={positions.energy}
+              onPositionChange={(x, y) => updatePosition('energy', x, y)}
             />
           )}
 
           {/* Holdings Panel */}
           {panelVisibility.holdings && (
             <HoldingsPanel 
-              
+              uiSizePercent={uiSizePercent}
+              position={positions.holdings}
+              onPositionChange={(x, y) => updatePosition('holdings', x, y)}
+            />
+          )}
+
+          {/* Cursor Panel */}
+          {panelVisibility.cursor && (
+            <CursorPanel 
+              cursorBlockName={cursorBlockType != null ? (objectsById as any)[cursorBlockType]?.name ?? "Unknown" : "Unknown"}
+              blockMassData={blockMassData}
+              uiSizePercent={uiSizePercent}
+              position={positions.cursor}
+              onPositionChange={(x, y) => updatePosition('cursor', x, y)}
             />
           )}
         </div>

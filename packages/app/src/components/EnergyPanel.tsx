@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getScaleFactorFromPercent } from '../config/layout';
 
 interface EnergyPanelProps {
   currentEnergy: bigint;
@@ -8,14 +9,56 @@ interface EnergyPanelProps {
     build: bigint;
     toolMine: bigint;
   };
+  uiSizePercent?: number;
+  position?: { x: number; y: number };
+  onPositionChange?: (x: number, y: number) => void;
 }
 
-export function EnergyPanel({ currentEnergy, energyCosts }: EnergyPanelProps) {
+export function EnergyPanel({ currentEnergy, energyCosts, uiSizePercent = 100, position = { x: 0, y: 0 }, onPositionChange }: EnergyPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   };
+
+  // Calculate scale factor based on UI size percentage
+  const scale = getScaleFactorFromPercent(uiSizePercent);
+
+  // Draggable functionality
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !onPositionChange) return;
+    // Calculate position relative to the viewport
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+    onPositionChange(newX, newY);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, dragOffset, onPositionChange]);
 
   // Calculate stats based on current energy
   const runs = currentEnergy > 0n ? Number(currentEnergy / energyCosts.move) : 0;
@@ -37,9 +80,31 @@ export function EnergyPanel({ currentEnergy, energyCosts }: EnergyPanelProps) {
       borderRadius: '0',
       zIndex: 999,
       width: '200px',
-      minHeight: isExpanded ? '200px' : '60px',
-      position: 'relative',
-    }}>
+      minHeight: isExpanded ? '180px' : '60px',
+      position: 'fixed',
+      left: `${position.x}px`,
+      top: `${position.y}px`,
+      zoom: scale,
+      cursor: isDragging ? 'grabbing' : 'default',
+          }}>
+      {/* Grabber Icon */}
+      <div
+        onMouseDown={handleMouseDown}
+        style={{
+          position: 'absolute',
+          top: '4px',
+          left: '4px',
+          cursor: 'grab',
+          fontSize: '12px',
+          color: 'rgb(174, 255, 208)',
+          userSelect: 'none',
+          padding: '2px',
+          zIndex: 1000,
+        }}
+      >
+        📍
+      </div>
+
       {/* Expand/Collapse Button */}
       <button
         onClick={toggleExpanded}
