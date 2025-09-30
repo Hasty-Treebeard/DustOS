@@ -3,6 +3,7 @@ import { ToolbarItem } from './ToolbarItem';
 import { AccountName } from '../common/AccountName';
 import type { PlayerEnergyData } from '../hooks/usePlayerEnergy';
 import { getScaleFactorFromPercent } from '../config/layout';
+import { useSyncStatus } from '../mud/useSyncStatus';
 
 
 
@@ -43,6 +44,7 @@ export function Toolbar({
   position = { x: 0, y: 0 },
   onPositionChange
 }: ToolbarProps) {
+  const syncStatus = useSyncStatus();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [visibleStats, setVisibleStats] = useState({
     position: true,
@@ -167,6 +169,9 @@ export function Toolbar({
                 Connecting...
               </span>
             )}
+             {!syncStatus.isLive && <span style={{ fontFamily: 'Fira Mono, Menlo, Monaco, Consolas, monospace', fontSize: 16, color: '#eee' }}>
+              {" "}(Loading... {syncStatus.percentage.toFixed(2)}%)
+            </span>}
           </div>
         </div>
         <div style={{
