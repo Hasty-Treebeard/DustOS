@@ -1,5 +1,4 @@
 import { usePlayerStatus } from "./common/usePlayerStatus";
-import { useSyncStatus } from "./mud/useSyncStatus";
 import { usePlayerPositionQuery } from "./common/usePlayerPositionQuery";
 import { useDustClient } from "./common/useDustClient";
 import { useCursorPositionQuery } from "./common/useCursorPositionQuery";
@@ -12,7 +11,6 @@ import { useQueryClient } from "@tanstack/react-query";
 
 export default function App() {
   const { data: dustClient } = useDustClient();
-  const syncStatus = useSyncStatus();
   const playerStatus = usePlayerStatus();
   const playerPosition = usePlayerPositionQuery();
   const cursorPosition = useCursorPositionQuery();
@@ -134,18 +132,6 @@ export default function App() {
       </div>
     );
   }
-
-  if (!syncStatus.isLive || !playerStatus) {
-    return (
-      <div className="flex flex-col h-screen items-center justify-start pt-4">
-        <p className="text-center bg-white px-2 py-1 rounded shadow">
-        <span className="block">DUST OS v1.3 - Loading... {syncStatus.percentage.toFixed(2)}%</span>
-        <span className="block">Align window to top right corner for optimal experience</span>
-          </p>
-      </div>
-    );
-  }
-
 
 
 
